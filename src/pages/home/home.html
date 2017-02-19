@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-navbar>
+    <ion-title>Home</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content padding>
+  <button ion-button full (click)="getPeople()">Get People</button>
+  <ion-list>
+    <button ion-item *ngFor="let item of partialPeople" (click)="personSelected(item)">
+      {{ item.name }}
+    </button>
+  </ion-list>
+
+  <ion-item>Active Person Information:</ion-item>
+  <div *ngIf="wholePerson" style="padding-left:30px">
+    Name: {{wholePerson.name}}<br>
+    Sex: {{wholePerson.sex}}<br>
+    Matches: <br>
+    <div *ngFor="let item of wholePerson.matches">
+      {{item.name}}
+    </div>
+  </div>
+</ion-content>
