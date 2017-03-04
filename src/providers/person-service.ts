@@ -1,5 +1,4 @@
 import {Injectable} from '@angular/core';
-import {Http} from '@angular/http';
 import 'rxjs/add/operator/map';
 
 import {Apollo} from 'apollo-angular';
@@ -28,6 +27,17 @@ const GivenPersonQueryText = gql`
   }
 `;
 
+const AddPersonQueryText = gql`
+  mutation AddPerson($name: String!,$sex:String!)
+  {
+    addPerson(name: $name, sex:$sex)
+    {
+      id,
+      name
+    }
+  }
+`;
+
 export class Person {
   public matches: Person[];
 
@@ -37,26 +47,51 @@ export class Person {
 }
 @Injectable()
 export class PersonService {
+  allPeople: any;
+  people: any;
 
   constructor(private apollo: Apollo) {
+
+    //configure "watch" expressions.
+
+    this.allPeople = this.apollo.watchQuery({
+      query: AllPeopleQueryText
+    })
+  }
+
+  addPerson(newPersonName: string, newPersonSex: string) {
+    // optimistic response does not appear to work.  What did I do wrong.
+    /*
+     ,
+     optimisticResponse: {
+     __typename: 'Mutation',
+     addPerson: {
+     __typename: 'Person',
+     id: 'some_number',
+     name: newPersonName
+     },
+     }
+     */
+    this.apollo.mutate({
+      mutation: AddPersonQueryText,
+      variables: {
+        name: newPersonName,
+        sex: newPersonSex
+      }
+    }).subscribe((res: any) => {
+      console.log('received response of the mutate', res);
+    });
   }
 
   getAllPeople() {
-    return new Promise((resolve, reject) => {
-
-      this.apollo.watchQuery({
-        query: AllPeopleQueryText
-      }).subscribe((res: any) => {
-        console.log(res.data.persons);
-        resolve(res.data.persons);
-      });
-
-    });
+    console.log('calling all people');
+    this.allPeople.refetch();
+    return this.allPeople;
   }
 
   getDetails(pID: string) {
     return new Promise((resolve, reject) => {
-      this.apollo.watchQuery({
+      this.apollo.query({
         query: GivenPersonQueryText,
         variables: {
           id: pID
@@ -66,12 +101,16 @@ export class PersonService {
         let ans = res.data.getPerson;
         if (ans) {
           let person = new Person(pID, ans.name, ans.sex);
+          console.log('update to getDetails');
           person.matches = ans.matches;
           resolve(person);
-
         } else {
           reject('could not get person');
         }
+      }, (err) => {
+        console.error(err);
+      }, () => {
+        console.log('completed the getDetails');
       });
     });
   }

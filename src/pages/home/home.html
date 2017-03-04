@@ -5,6 +5,7 @@
 </ion-header>
 
 <ion-content padding>
+  <button ion-button full color='danger' (click)="addPerson()">Add Person</button>
   <button ion-button full (click)="getPeople()">Get People</button>
   <ion-list>
     <button ion-item *ngFor="let item of partialPeople" (click)="personSelected(item)">
